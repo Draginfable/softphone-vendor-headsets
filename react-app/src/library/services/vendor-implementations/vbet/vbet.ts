@@ -54,7 +54,7 @@ export default class VBetService extends VendorImplementation {
         muteOff: [0x3, 0x0, 0x0],
       };
       this.inputReportReportId = 0x08;
-    } else if (CMEDIASeries.includes(pid)) {
+    } else if (CMEDIASeries.includes(pid) || pid === 0x0028) {
       this.deviceCmds = {
         ring: [0x6, 0x1, 0x0],
         offHook: [0x6, 0x2, 0x0],
@@ -213,6 +213,23 @@ export default class VBetService extends VendorImplementation {
         }
         break;
       case 0x14:
+        await this.setMuteFromDevice(!this.isMuted);
+        break;
+      }
+    }
+    if (this.activeDevice.productId === 0x0028) {
+      switch (value) {
+      case 0x01:
+        this.lastByte !== 0x09 && await this.answerCallFromDevice();
+        break;
+      case 0x00:
+        if (this.lastByte === 0x08) {
+          await this.setMuteFromDevice(!this.isMuted);
+        } else {
+          await this.endCallFromDevice();
+        }
+        break;
+      case 0x09:
         await this.setMuteFromDevice(!this.isMuted);
         break;
       }
